@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>munch · eat what you love</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@600&display=swap">
+<style>
+:root{--bg:#f4efe6;--card:#fbf8f2;--tx:#2b2a26;--mu:#8a8478;--bd:#e6dfd1;--ac:#4f7a5a;--p:#6b8ea8;--c:#e3a54b;--f:#d9694f;--over:#c4452f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141612;--card:#1e211a;--tx:#efeadf;--mu:#a39d8e;--bd:#30342a;--ac:#8fbf8f}}
+:root[data-theme="dark"]{--bg:#141612;--card:#1e211a;--tx:#efeadf;--mu:#a39d8e;--bd:#30342a;--ac:#8fbf8f}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 "DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:560px;margin:0 auto;padding-bottom:40px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--bd);border-radius:0 0 26px 26px;padding:12px 18px 18px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;padding:8px 14px;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+button.pri{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+.date{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:21px;text-transform:lowercase}
+.big{display:flex;justify-content:space-around;text-align:center;margin:10px 0 8px}
+.big b{display:block;font-family:"Fraunces",Georgia,serif;font-size:32px;line-height:1.1}.big span{font-size:12px;color:var(--mu)}
+.bar{height:8px;border-radius:6px;background:var(--bd);overflow:hidden}.bar i{display:block;height:100%;border-radius:6px;background:var(--ac)}
+.macros{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.macros small{display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-bottom:4px}
+.macros small b{color:var(--tx)}
+main{padding:14px 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:22px;padding:16px;margin-bottom:14px}
+textarea{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:16px;padding:12px;resize:vertical;min-height:76px}
+input{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:16px;padding:12px;width:100%}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chips button{padding:6px 10px;font-size:14px}.chips button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.meal h3{margin:0 0 6px;font-family:"Fraunces",Georgia,serif;font-size:18px;text-transform:lowercase;display:flex;justify-content:space-between}.meal h3 span{color:var(--mu);font-weight:500}
+.item{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--bd)}
+.item:first-of-type{border-top:0}
+.item .n{font-weight:500}.item .m{font-size:12px;color:var(--mu)}
+.item .k{text-align:right;white-space:nowrap}
+.x{background:none;border:0;color:var(--mu);padding:0 4px;font-size:18px}
+.empty{color:var(--mu);font-size:14px;padding:4px 0}
+.msg{font-size:14px;margin-top:8px;color:var(--mu)}.msg.err{color:var(--over)}
+dialog{border:1px solid var(--bd);border-radius:28px;background:var(--card);color:var(--tx);width:min(92vw,420px);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+label{font-size:13px;color:var(--mu);display:block;margin-bottom:3px}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <button id="prev" aria-label="Previous day">‹</button>
+    <div class="date" id="date"></div>
+    <div><button id="next" aria-label="Next day">›</button> <button id="goals">my goals</button></div>
+  </div>
+  <div class="big">
+    <div><b id="eaten">0</b><span>eaten</span></div>
+    <div><b id="goal">0</b><span>goal</span></div>
+    <div><b id="left">0</b><span id="leftl">left</span></div>
+  </div>
+  <div class="bar"><i id="calbar" style="width:0"></i></div>
+  <div class="macros" id="macros"></div>
+</header>
+<main>
+  <div class="card">
+    <label for="q">what’s on your plate? brands + amounts help</label>
+    <textarea id="q" placeholder="e.g. two scrambled eggs, a Chobani vanilla greek yogurt, oat latte from Starbucks"></textarea>
+    <div class="chips" id="mealchips"></div>
+    <div class="row"><span class="msg" id="msg"></span><button class="pri" id="go">log it</button></div>
+  </div>
+  <div id="meals"></div>
+</main>
+<dialog id="dlg">
+  <b style="font-family:'Fraunces',Georgia,serif;font-size:22px">your daily targets</b>
+  <div class="g">
+    <div><label for="gc">Calories</label><input id="gc" type="number" inputmode="numeric" min="0"></div>
+    <div><label for="gp">Protein (g)</label><input id="gp" type="number" inputmode="numeric" min="0"></div>
+    <div><label for="gcb">Carbs (g)</label><input id="gcb" type="number" inputmode="numeric" min="0"></div>
+    <div><label for="gf">Fat (g)</label><input id="gf" type="number" inputmode="numeric" min="0"></div>
+  </div>
+  <div class="row"><button id="gx">Cancel</button><button class="pri" id="gs">Save</button></div>
+</dialog>
+<script>
+const MEALS=["Breakfast","Lunch","Dinner","Snacks"];
+let S={goals:{cal:2200,p:150,c:250,f:70},days:{}},meal="Breakfast",cur=new Date(),sample=null;
+try{const r=localStorage.getItem("macromate");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem("macromate",JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const key=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const r0=n=>Math.round(n||0);
+function sum(list){return list.reduce((a,i)=>({cal:a.cal+i.cal,p:a.p+i.p,c:a.c+i.c,f:a.f+i.f}),{cal:0,p:0,c:0,f:0})}
+function render(){
+  const k=key(cur),list=S.days[k]||[],t=sum(list),g=S.goals;
+  const today=key(new Date())===k;
+  $("date").textContent=today?"Today":cur.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  $("eaten").textContent=r0(t.cal);$("goal").textContent=g.cal;
+  const left=g.cal-t.cal;$("left").textContent=Math.abs(r0(left));$("leftl").textContent=left<0?"over":"left";
+  $("left").style.color=left<0?"var(--over)":"";
+  const cb=$("calbar");cb.style.width=Math.min(100,g.cal?t.cal/g.cal*100:0)+"%";cb.style.background=left<0?"var(--over)":"var(--ac)";
+  $("macros").innerHTML=[["Protein","p","--p"],["Carbs","c","--c"],["Fat","f","--f"]].map(([n,m,col])=>
+    `<div><small><span>${n}</span><b>${r0(t[m])}/${g[m]}g</b></small><div class="bar"><i style="width:${Math.min(100,g[m]?t[m]/g[m]*100:0)}%;background:var(${col})"></i></div></div>`).join("");
+  $("meals").innerHTML=MEALS.map(m=>{
+    const it=list.filter(i=>i.meal===m),mt=sum(it);
+    return `<div class="card meal"><h3>${m}<span>${r0(mt.cal)} kcal</span></h3>`+(it.length?it.map(i=>
+      `<div class="item"><div><div class="n">${esc(i.name)}</div><div class="m">${esc(i.brand?i.brand+" · ":"")}${esc(i.serving||"")}</div><div class="m">P ${r0(i.p)}g · C ${r0(i.c)}g · F ${r0(i.f)}g</div></div><div class="k"><b>${r0(i.cal)}</b> <button class="x" data-id="${i.id}" aria-label="Remove">×</button></div></div>`).join(""):`<div class="empty">nothing yet</div>`)+`</div>`;
+  }).join("");
+  $("mealchips").innerHTML=MEALS.map(m=>`<button class="${m===meal?"on":""}" data-m="${m}">${m}</button>`).join("");
+}
+$("mealchips").onclick=e=>{const m=e.target.dataset.m;if(m){meal=m;render()}};
+$("meals").onclick=e=>{const id=e.target.dataset.id;if(!id)return;const k=key(cur);S.days[k]=(S.days[k]||[]).filter(i=>i.id!==id);save();render()};
+$("prev").onclick=()=>{cur.setDate(cur.getDate()-1);render()};
+$("next").onclick=()=>{cur.setDate(cur.getDate()+1);render()};
+$("goals").onclick=()=>{const g=S.goals;$("gc").value=g.cal;$("gp").value=g.p;$("gcb").value=g.c;$("gf").value=g.f;$("dlg").showModal()};
+$("gx").onclick=()=>$("dlg").close();
+$("gs").onclick=()=>{const v=id=>Math.max(0,parseFloat($(id).value)||0);S.goals={cal:v("gc"),p:v("gp"),c:v("gcb"),f:v("gf")};save();$("dlg").close();render()};
+const setMsg=(t,err)=>{$("msg").textContent=t;$("msg").className="msg"+(err?" err":"")};
+$("go").onclick=async()=>{
+  const text=$("q").value.trim();if(!text)return setMsg("tell me what you ate first.",1);
+  if(!sample)return setMsg("Logging isn’t available in this view.",1);
+  $("go").disabled=true;setMsg("reading your plate…");
+  try{
+    const res=await sample.json(
+`You are a nutrition database. The user logged this food: "${text}"
+Identify every distinct food or drink. Use real brand/restaurant nutrition data when a brand is named; otherwise use typical USDA values. Account for quantities (e.g. "2 eggs" = two eggs total). Estimate sensibly when unsure.
+Respond with ONLY JSON, no markdown: {"items":[{"name":"short food name","brand":"brand or empty string","serving":"amount eaten, e.g. 2 large eggs","cal":number,"p":protein grams,"c":carb grams,"f":fat grams}]}`,{cache:false});
+    const items=(res&&res.items)||[];
+    if(!items.length)throw new Error("none");
+    const k=key(cur);S.days[k]=S.days[k]||[];
+    items.forEach(i=>S.days[k].push({id:Date.now()+""+Math.random().toString(36).slice(2,6),meal,name:i.name||"Food",brand:i.brand||"",serving:i.serving||"",cal:+i.cal||0,p:+i.p||0,c:+i.c||0,f:+i.f||0}));
+    save();$("q").value="";setMsg("logged "+items.length+" item"+(items.length>1?"s":"")+" to "+meal.toLowerCase()+". nice.");render();
+  }catch(e){setMsg(e&&e.code==="not_granted"?"no worries, tap log it whenever you’re ready.":"hmm, couldn’t make that out. try wording it differently?",1)}
+  $("go").disabled=false;
+};
+render();
+(async()=>{try{sample=await claude.use("sample")}catch(e){}if(!sample)setMsg("Logging isn’t available here.",1)})();
+</script>
+</body>
+</html>
